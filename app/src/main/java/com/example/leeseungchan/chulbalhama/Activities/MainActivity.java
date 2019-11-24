@@ -44,14 +44,15 @@ public class MainActivity extends AppCompatActivity
     private PersonalInfoFragment personalInfoFragment;
     private FragmentTransaction transaction;
     public SharedPreferences prefs;
-
-
+    public static boolean mainCreated=false;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        mainCreated=true;
 
         /* 위치 권한 받는 코드 */
         if ( Build.VERSION.SDK_INT >= 23 &&
@@ -183,6 +184,13 @@ public class MainActivity extends AppCompatActivity
                     .show();
         }
         return;
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mainCreated=false;
     }
 
 }

@@ -4,9 +4,13 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,13 +19,27 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.example.leeseungchan.chulbalhama.Activities.MainActivity;
 import com.example.leeseungchan.chulbalhama.R;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.DetectedActivity;
+
+import java.util.ArrayList;
 
 public class LocationHelper {
+
+
+
     LocationListener gpsLocationListener;
     LocationManager lm;
     DistanceCalc calc;
@@ -29,6 +47,10 @@ public class LocationHelper {
     NotificationManager manager;
     public static final String CHANNEL_ID = "location_noti_channel";
     private int updateInterval = 5000;
+
+
+    private boolean activityRecognitionStart = false;
+
 
     double lastLongitude;
     double lastLatitude;
@@ -65,24 +87,14 @@ public class LocationHelper {
 
                 longitude = calc.formattingPoint(longitude);
                 latitude = calc.formattingPoint(latitude);
-//                if(calc.distance(schoolLocation.getLatitude(),schoolLocation.getLongitude(),currentLocation.getLatitude(),currentLocation.getLongitude(),"meter") < 50 && userState=="OnTheRoad"){
-//                    //TODO 이 때 시간이 시작시간보다 늦으면 지각이므로 알람을 안띄우게
-//                    userState = "SCHOOL";
-//                    Toast.makeText(context, "학교에 거의 도착했습니다!", Toast.LENGTH_SHORT).show();
-//                } else if (calc.distance(homeLocation.getLatitude(),homeLocation.getLongitude(),currentLocation.getLatitude(),currentLocation.getLongitude(),"meter") > 50 && userState =="HOME"){
-//                    userState ="OnTheRoad";
-//                    Toast.makeText(context, "집에서 나왔습니다!", Toast.LENGTH_SHORT).show();
-//                    //TODO 여기에 ~초이상 머무르면 뜨는 알람 설정 (사용자가 집에서 나왔다.)
-//                } else if (calc.distance(homeLocation.getLatitude(),homeLocation.getLongitude(),currentLocation.getLatitude(),currentLocation.getLongitude(),"meter") < 50){
-//                    //유저가 집에 있다.
-//                    userState ="HOME";
-//                    if(false){
-//                        Toast.makeText(context, "책을 가지고 나가세요!", Toast.LENGTH_SHORT).show();
-//                    }
-//                }
 
                 //TODO 유저의 위치 vs 목적지 위치 / 집 위치 비교
                 //TODO 시간 비교해서 해당 습관에 대한 Notification or PopUp
+                if(!activityRecognitionStart)
+                {
+
+
+                }
 
                 lastLatitude = latitude;
                 lastLongitude = longitude;
@@ -145,4 +157,5 @@ public class LocationHelper {
             manager.createNotificationChannel(serviceChannel);
         }
     }
+
 }
