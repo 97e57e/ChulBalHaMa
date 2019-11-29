@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -56,7 +57,7 @@ public class HabitHistoryFragment extends Fragment {
         /* srbai history */
         RecyclerView recyclerView = v.findViewById(R.id.history_list);
         RecyclerView.LayoutManager layoutManager=
-            new LinearLayoutManager(getContext(), RecyclerView.VERTICAL, false);
+            new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false);
         recyclerView.setLayoutManager(layoutManager);
         SRBAIAdapter adapter = new SRBAIAdapter(srbaiVOS);
         recyclerView.setAdapter(adapter);
@@ -66,6 +67,13 @@ public class HabitHistoryFragment extends Fragment {
         final LinearLayout srbaiQ = v.findViewById(R.id.srbai_questions);
     
         final CheckBox showAdditional = v.findViewById(R.id.show_additional);
+        boolean todayComplete = isTodayComplete(lastSrbaiVO(srbaiVOS));
+    
+        if(todayComplete) {
+            showAdditional.setChecked(true);
+            showAdditional.setEnabled(!todayComplete);
+            srbaiQ.setVisibility(View.GONE);
+        }
         showAdditional.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -76,7 +84,6 @@ public class HabitHistoryFragment extends Fragment {
                 }
             }
         });
-    
         /* SRBAI input */
         LinearLayout srbaiFirst = srbaiQ.findViewById(R.id.srbai_fir);
         final RadioGroup firstQ = srbaiFirst.findViewById(R.id.radio_result);
@@ -87,16 +94,17 @@ public class HabitHistoryFragment extends Fragment {
         LinearLayout srbaiFourth = srbaiQ.findViewById(R.id.srbai_fou);
         final RadioGroup fourthQ = srbaiFourth.findViewById(R.id.radio_result);
         
+        /* store SRBAI data */
         final Button storeSRBAI = srbaiQ.findViewById(R.id.store_srbai);
         storeSRBAI.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 srbaiQ.setVisibility(View.GONE);
-                showAdditional.setEnabled(false);
                 SrbaiVO data = new SrbaiVO(getDate(),
                     getScore(new RadioGroup[]{firstQ,secondQ,thirdQ,fourthQ}),
                     habit.getId());
                 storeSRBAI(data);
+                refresh();
             }
         });
     
@@ -142,6 +150,28 @@ public class HabitHistoryFragment extends Fragment {
             SrbaiVO srbaiVO = new SrbaiVO(day, score, habitId);
             srbaiVOS.add(srbaiVO);
         }
+    }
+    
+    private boolean isTodayComplete( SrbaiVO today){
+        if(today == null)
+            return false;
+        
+        if(today.getDay().equals(getDate()))
+            return true;
+        else
+            return false;
+    }
+    private void refresh(){
+        FragmentTransaction transaction =
+            getActivity().getSupportFragmentManager().beginTransaction();
+        transaction.detach(this).attach(this).commit();
+    }
+    
+    private SrbaiVO lastSrbaiVO(ArrayList<SrbaiVO> srbaivos){
+        if(srbaivos == null || srbaivos.size() == 0){
+            return null;
+        }
+        return srbaivos.get(srbaivos.size()-1);
     }
 
 }

@@ -25,7 +25,6 @@ public class WorkManagerTasks extends Worker {
     public WorkManagerTasks(@NonNull Context appContext, @NonNull WorkerParameters workerParams) {
         super(appContext, workerParams);
         this.appContext = appContext;
-
     }
 
     @NonNull
