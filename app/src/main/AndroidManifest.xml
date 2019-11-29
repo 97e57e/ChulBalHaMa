@@ -16,10 +16,10 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
 
-<!--        <service-->
-<!--            android:name=".Service.DetectedActivitiesIntentService"-->
-<!--            android:enabled="true"-->
-<!--            android:exported="true"></service>-->
+        <service
+            android:name=".Service.DetectedActivitiesIntentService"
+            android:enabled="true"
+            android:exported="true"></service>
 
         <activity
             android:name=".Activities.SplashActivity"

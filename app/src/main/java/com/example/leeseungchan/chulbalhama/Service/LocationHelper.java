@@ -224,18 +224,8 @@ public class LocationHelper {
 
     public void getLocationListener(){
 
-        final Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setContentTitle("Foreground Service")
-                .setContentText("허허")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(pendingIntent)
-                .build();
-
         gpsLocationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                synchronized (notification){
-                    manager.notify(3, notification);
-                }
 
                 notiCondition();
 
@@ -279,20 +269,11 @@ public class LocationHelper {
         this.updateInterval = interval;
         lm.removeUpdates(gpsLocationListener);
 
-        final Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setContentTitle("Foreground Service")
-                .setContentText("허허")
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentIntent(pendingIntent)
-                .build();
 
         notiCondition();
 
         gpsLocationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                synchronized (notification){
-                    manager.notify(3, notification);
-                }
 
                 String provider = location.getProvider();
                 double longitude = location.getLongitude();
@@ -332,6 +313,12 @@ public class LocationHelper {
 
 
     public void notiCondition() {
+        final Notification notification;
+        NotificationCompat.Builder nBuilder= new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setContentTitle("Foreground Service")
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentIntent(pendingIntent);
+
         Date currentDateTime = new Date();
         Log.e("LocationHelper", "Notification Condition");
         //TODO 조건에 따른 새로운 알람 주기.
@@ -344,14 +331,17 @@ public class LocationHelper {
         Log.d("Current Location" , "지금 어디 ? " + Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")));
 
         /* 집일때 처리*/
-        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") > 50){
-
+        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 50){
+            notification = nBuilder.setContentText("집에 있다.").build();
+            manager.notify(3, notification);
             /* 학교일때 처리 */
-        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") > 50){
-
+        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 50){
+            notification = nBuilder.setContentText("학교에 있다.").build();
+            manager.notify(3, notification);
             /* 길바닥일때 처리 */
         } else{
-
+            notification = nBuilder.setContentText("나는 어디인가.").build();
+            manager.notify(3, notification);
         }
 
     }
