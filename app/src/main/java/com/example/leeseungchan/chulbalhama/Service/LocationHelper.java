@@ -56,6 +56,8 @@ public class LocationHelper {
         return lHelperInstance;
     }
 
+    int trash = 0;
+
     Intent notificationIntent;
     PendingIntent pendingIntent;
 
@@ -227,8 +229,11 @@ public class LocationHelper {
         gpsLocationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
 
-                notiCondition();
-
+                if(trash++ > 2) {
+                    notiCondition();
+                } else {
+                    Log.e("Location Helper ", "버려~");
+                }
                 String provider = location.getProvider();
                 double longitude = location.getLongitude();
                 double latitude = location.getLatitude();
@@ -237,14 +242,9 @@ public class LocationHelper {
                 latitude = calc.formattingPoint(latitude);
                 curr_lat = latitude;
                 curr_lon = longitude;
-                Log.d("LocationHelper", "Current Lat : " + latitude);
-                Log.d("LocationHelper", "Current Lon : " + longitude);
-                //TODO 유저의 위치 vs 목적지(목적지 테이블) 위치 / 집 위치 (유저 테이블) 비교
-                //TODO 시간 비교해서 해당 습관에 대한 Notification or PopUp
 
                 if(!activityRecognitionStart)
                 {
-
 
                 }
 
@@ -333,7 +333,6 @@ public class LocationHelper {
         if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 100){
             userState = "HOME";
             notification = nBuilder.setContentTitle("집에 있다.").build();
-            manager.notify(3, notification);
             /* 학교일때 처리 이때 '잘 했냐?' 팝업창을 띄워줌 */
         } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 100){
             userState = "SCHOOL";
