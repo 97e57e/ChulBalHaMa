@@ -70,6 +70,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 
     int lastTimeInterval = 0;
     boolean flag = false;
+    boolean isActivityStart = false;
 
     int count=0;
     boolean startupdate=false;
@@ -175,6 +176,16 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         @Override
 
         public void handleMessage(android.os.Message msg) {
+            if(locationHelper.getUserState() == "ROAD" && isActivityStart == false){
+                requestActivityUpdates();
+                isActivityStart = true;
+                Log.d("HAMA SERVICE", "액티비티 레코그니션 생성");
+            }
+            if(locationHelper.getUserState() == "SCHOOL" && isActivityStart == true){
+                removeActivityUpdates();
+                isActivityStart = false;
+                Log.d("HAMA SERVICE", "액티비티 레코그니션 제거");
+            }
 //            if (locationHelper != null) {
 //                Log.e("Handler" , "도나?");
 //
@@ -185,10 +196,6 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 //                    flag=false;
 //                }
 //            }
-//            requestActivityUpdates();
-            Log.e("HAMAHandler", "Request Activity");
-
-
         }
     }
     public int adjustTimeInterval() {

@@ -73,7 +73,7 @@ public class LocationHelper {
     double lastLongitude;
     double lastLatitude;
 
-    String userState = "HOME1";
+    String userState = "HOME";
 
     /* 조건 파악에 필요한 정보 */
     String userName;
@@ -262,7 +262,7 @@ public class LocationHelper {
             }
         };
 
-        getLocation();
+//        getLocation();
     }
 
     public void setUpdateInterval(int interval){
@@ -315,32 +315,36 @@ public class LocationHelper {
     public void notiCondition() {
         final Notification notification;
         NotificationCompat.Builder nBuilder= new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setContentTitle("Foreground Service")
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent);
 
         Date currentDateTime = new Date();
         Log.e("LocationHelper", "Notification Condition");
-        //TODO 조건에 따른 새로운 알람 주기.
 
         /* 지금 몇시 ? */
         SimpleDateFormat format = new SimpleDateFormat("HH:mm");
         car = Calendar.getInstance();
         String currentTime = format.format(car.getTime());
         Log.d("CurrentTime?", currentTime);
-        Log.d("Current Location" , "지금 어디 ? " + Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")));
+        Log.d("Current Location" , "집과 나로부터의 거리 ? " + Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")));
+        Log.d("Current Location" , "학교와 나로부터의 거리 ? " + Double.toString(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter")));
 
-        /* 집일때 처리*/
-        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 50){
-            notification = nBuilder.setContentText("집에 있다.").build();
+            /* 집일때 처리 후문 위치를 넣어놓자. 이때 최초에 집에서 나갈 준비를 하세요 라는 걸 띄워줌.*/
+        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 100){
+            userState = "HOME";
+            notification = nBuilder.setContentTitle("집에 있다.").build();
             manager.notify(3, notification);
-            /* 학교일때 처리 */
-        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 50){
-            notification = nBuilder.setContentText("학교에 있다.").build();
+            /* 학교일때 처리 이때 '잘 했냐?' 팝업창을 띄워줌 */
+        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 100){
+            userState = "SCHOOL";
+            //팝업 오늘 잘 했나요? 예 - > SRBAI 할래요? 예 - > 액티비티 켜줌
+            notification = nBuilder.setContentTitle("학교에 있다.").build();
             manager.notify(3, notification);
-            /* 길바닥일때 처리 */
+            /* 길바닥일때 처리 이때 차에 타면 습관을 하세요 띄워줌*/
         } else{
-            notification = nBuilder.setContentText("나는 어디인가.").build();
+            userState = "ROAD";
+            //팝업 한번 ( 오늘 '습관이름'을 할 수 있나요? )
+            notification = nBuilder.setContentTitle("나는 어디인가.").build();
             manager.notify(3, notification);
         }
 
