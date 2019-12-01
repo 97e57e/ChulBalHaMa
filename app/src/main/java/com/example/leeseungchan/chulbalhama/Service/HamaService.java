@@ -186,7 +186,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
             if(locationHelper.getUserState() == "ROAD" && isActivityStart == false){
                 if(!startPopUpFlag) {
                     Intent startPopUpIntent = new Intent(getApplicationContext(), PopUpScreen.class);
-                    startPopUpIntent.putExtra("data", "하마 서비스를 시작합니다.");
+                    startPopUpIntent.putExtra("data", "오늘은 " + locationHelper.getHabitName() + "를 하셔야 합니다.");
                     getApplication().startActivity(startPopUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
                     startPopUpFlag = true;
                 }
@@ -194,7 +194,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                 isActivityStart = true;
                 Log.d("HAMA SERVICE", "액티비티 레코그니션 생성");
             }
-            if(locationHelper.getUserState() == "SCHOOL" && isActivityStart == true){
+            if(locationHelper.getUserState() == "SCHOOL"){
                 if(!endPopUpFlag){
                     Intent startPopUpIntent = new Intent(getApplicationContext(), PopUpScreen.class);
                     startPopUpIntent.putExtra("data", "오늘 " + locationHelper.getHabitName() + "를 잘 하셨나요?");
@@ -213,7 +213,8 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                     manager.notify(3, endNotification);
                 }
                 removeActivityUpdates();
-                isActivityStart = false;
+                stopForeground(true);
+//                isActivityStart = false;
                 Log.d("HAMA SERVICE", "액티비티 레코그니션 제거");
             }
         }
@@ -352,10 +353,10 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 
     public String removeActivityUpdates() {//지정된 PendingIntent 에 대한 모든 활동 업데이트를 제거.
         if (!googleApiClient.isConnected()) {
-            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
+//            Toast.makeText(this, getString(R.string.not_connected), Toast.LENGTH_SHORT).show();
             return null;
         }
-        Toast.makeText(this, "Remove Connection", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "Remove Connection", Toast.LENGTH_SHORT).show();
 
         ActivityRecognition
                 .ActivityRecognitionApi
@@ -444,7 +445,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                 firstTimeCall = 1;
             }
             Log.e(TAG, strStatus);
-            Toast.makeText(getApplicationContext(), strStatus, Toast.LENGTH_SHORT).show();//appcontext에 토스트
+//            Toast.makeText(getApplicationContext(), strStatus, Toast.LENGTH_SHORT).show();//appcontext에 토스트
             //detectedActivities.setText(strStatus);
 
         }

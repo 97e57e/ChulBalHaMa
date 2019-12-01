@@ -77,9 +77,13 @@ public class LocationHelper {
 
     String userState = "HOME";
 
+    /* 알람 조건 */
+    boolean homeNoti = false;
+
     /* 조건 파악에 필요한 정보 */
     String userName;
     String habitName;
+    String prepareName;
     double dest_lon;
     double dest_lat;
     double start_lon;
@@ -193,6 +197,7 @@ public class LocationHelper {
             Cursor cHabit = db.rawQuery(habitSql, new String[]{Integer.toString(todays_habit)});
             cHabit.moveToNext();
             todays_habit_name = cHabit.getString(1);
+            prepareName = cHabit.getString(2);
             Log.d("Todays Habit name ?", todays_habit_name);
             habitName = todays_habit_name;
         } catch (Exception e){Log.e("LocationHelper", "Habits Table error");}
@@ -333,21 +338,20 @@ public class LocationHelper {
             /* 집일때 처리 후문 위치를 넣어놓자. 이때 최초에 집에서 나갈 준비를 하세요 라는 걸 띄워줌.*/
         if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 50){
             userState = "HOME";
-            notification = nBuilder.setContentTitle(habitName + "을 할 준비가 되셨나요?").build();
-            Toast.makeText(this.context,Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")) + "미터~" , Toast.LENGTH_SHORT).show();
-            manager.notify(3, notification);
+            if(!homeNoti) {
+                notification = nBuilder.setContentTitle("출발 하시기 전에 " + prepareName + "을 준비하세요!").build();
+                manager.notify(3, notification);
+                homeNoti = true;
+            }
+            //            Toast.makeText(this.context,Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")) + "미터~" , Toast.LENGTH_SHORT).show();
             /* 학교일때 처리 이때 '잘 했냐?' 팝업창을 띄워줌 */
         } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 50){
             userState = "SCHOOL";
-            //팝업 오늘 잘 했나요? 예 - > SRBAI 할래요? 예 - > 액티비티 켜줌
-//            notification = nBuilder.setContentTitle("학교에 있다.").build();
-//            manager.notify(3, notification);
-            /* 길바닥일때 처리 이때 차에 타면 습관을 하세요 띄워줌*/
         } else{
             userState = "ROAD";
             //팝업 한번 ( 오늘 '습관이름'을 할 수 있나요? )
-            notification = nBuilder.setContentTitle("나는 어디인가.").build();
-            manager.notify(3, notification);
+//            notification = nBuilder.setContentTitle("나는 어디인가.").build();
+//            manager.notify(3, notification);
         }
 
     }
