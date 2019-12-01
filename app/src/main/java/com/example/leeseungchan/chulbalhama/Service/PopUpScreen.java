@@ -10,6 +10,7 @@ import com.example.leeseungchan.chulbalhama.R;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -39,7 +40,7 @@ public class PopUpScreen extends Activity {
         Intent intent = new Intent();
         intent.putExtra("result", "Close Popup");
         setResult(RESULT_OK, intent);
-
+//        HamaService.habitPopUpFlag = false;
         //액티비티(팝업) 닫기
         finish();
     }

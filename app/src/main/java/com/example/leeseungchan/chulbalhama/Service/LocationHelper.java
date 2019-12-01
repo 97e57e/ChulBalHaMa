@@ -229,7 +229,7 @@ public class LocationHelper {
         gpsLocationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
 
-                if(trash++ > 2) {
+                if(trash++ > 0) {
                     notiCondition();
                 } else {
                     Log.e("Location Helper ", "버려~");
@@ -340,8 +340,8 @@ public class LocationHelper {
         } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 50){
             userState = "SCHOOL";
             //팝업 오늘 잘 했나요? 예 - > SRBAI 할래요? 예 - > 액티비티 켜줌
-            notification = nBuilder.setContentTitle("학교에 있다.").build();
-            manager.notify(3, notification);
+//            notification = nBuilder.setContentTitle("학교에 있다.").build();
+//            manager.notify(3, notification);
             /* 길바닥일때 처리 이때 차에 타면 습관을 하세요 띄워줌*/
         } else{
             userState = "ROAD";
@@ -373,4 +373,7 @@ public class LocationHelper {
         lm.removeUpdates(gpsLocationListener);
     }
 
+    public String getHabitName() {
+        return habitName;
+    }
 }

@@ -36,6 +36,7 @@ import androidx.work.WorkManager;
 import com.example.leeseungchan.chulbalhama.Activities.MainActivity;
 import com.example.leeseungchan.chulbalhama.DBHelper;
 import com.example.leeseungchan.chulbalhama.R;
+import com.example.leeseungchan.chulbalhama.UI.habit.HabitListFragment;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -71,6 +72,9 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
     int lastTimeInterval = 0;
     boolean flag = false;
     boolean isActivityStart = false;
+    boolean startPopUpFlag = false;
+    boolean endPopUpFlag = false;
+    public static boolean habitPopUpFlag = false;
 
     int count=0;
     boolean startupdate=false;
@@ -110,13 +114,13 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+
         Log.d("HamaService", "onStartCommand");
 
         mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
         buildGoogleApiClient();
         googleApiClient.connect();//추가
         LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
-//
 
         String input = intent.getStringExtra("inputExtra");
         createNotificationChannel();
@@ -124,12 +128,14 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         PendingIntent pendingIntent = PendingIntent.getActivity(this,
                 0, notificationIntent, 0);
 
+        /* Foreground 노티 */
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("출발 하마!")
                 .setContentText(input)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
                 .build();
+
         //GPS 수집 관련 로직
         Log.d("INService", "onBind");
         HamaHandler hamaHandler = new HamaHandler();
@@ -176,31 +182,40 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         @Override
 
         public void handleMessage(android.os.Message msg) {
+
             if(locationHelper.getUserState() == "ROAD" && isActivityStart == false){
-
-                Intent intent = new Intent(getApplicationContext(), PopUpScreen.class);
-                intent.putExtra("data", "습관을 수행하세요");
-                getApplication().startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-
+                if(!startPopUpFlag) {
+                    Intent startPopUpIntent = new Intent(getApplicationContext(), PopUpScreen.class);
+                    startPopUpIntent.putExtra("data", "하마 서비스를 시작합니다.");
+                    getApplication().startActivity(startPopUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    startPopUpFlag = true;
+                }
                 requestActivityUpdates();
                 isActivityStart = true;
                 Log.d("HAMA SERVICE", "액티비티 레코그니션 생성");
             }
             if(locationHelper.getUserState() == "SCHOOL" && isActivityStart == true){
+                if(!endPopUpFlag){
+                    Intent startPopUpIntent = new Intent(getApplicationContext(), PopUpScreen.class);
+                    startPopUpIntent.putExtra("data", "오늘 " + locationHelper.getHabitName() + "를 잘 하셨나요?");
+                    getApplication().startActivity(startPopUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                    endPopUpFlag = true;
+
+                    Intent endNotificationIntent = new Intent(getApplicationContext(), MainActivity.class);
+                    PendingIntent endPendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                            0, endNotificationIntent, 0);
+                    Notification endNotification = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID)
+                            .setContentTitle("출발 하마!")
+                            .setContentText("수고하셨습니다. 설문을 완료해보세요!")
+                            .setSmallIcon(R.drawable.ic_launcher_foreground)
+                            .setContentIntent(endPendingIntent)
+                            .build();
+                    manager.notify(3, endNotification);
+                }
                 removeActivityUpdates();
                 isActivityStart = false;
                 Log.d("HAMA SERVICE", "액티비티 레코그니션 제거");
             }
-//            if (locationHelper != null) {
-//                Log.e("Handler" , "도나?");
-//
-//                if (flag){
-//                    locationHelper.setUpdateInterval(adjustTimeInterval());
-//                    locationHelper.removeUpdates();
-//                    locationHelper.getLocationListener();
-//                    flag=false;
-//                }
-//            }
         }
     }
     public int adjustTimeInterval() {
@@ -374,19 +389,30 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         protected static final String TAG = "receiver";
         private int firstTimeCall = 0;
         float[] confidenceOfActivity = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-        int maxIdx = 0;
+        int maxIdx = -1;
         long accumulatedTime = 0;
 
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList<DetectedActivity> updatedActivities = intent.getParcelableArrayListExtra(Constants.ACTIVITY_EXTRA);
             String strStatus = "";
+            maxIdx=0;
+            for(int i =0; i<confidenceOfActivity.length ; i++)
+                confidenceOfActivity[i]=0;
             for (DetectedActivity activity : updatedActivities) {
                 int activityType = activity.getType(); // activity 타입 추출
-                if (activityType == 6)
+//                if (activityType == 6)
+//                    continue;
+
+                if(activityType==4)
+                    activityType=3;
+                if(activityType==6)
                     continue;
-                confidenceOfActivity[activityType] = activity.getConfidence(); // confidence 기록
-                maxIdx = confidenceOfActivity[activityType] > confidenceOfActivity[maxIdx] ? activityType : maxIdx; // 더크다면 큰걸로 기록
+
+               if (activity.getConfidence() >confidenceOfActivity[activityType]) {
+                   confidenceOfActivity[activityType] = activity.getConfidence();
+               }
+                maxIdx = (confidenceOfActivity[activityType] > confidenceOfActivity[maxIdx] ? activityType : maxIdx); // 더크다면 큰걸로 기록
                 strStatus += getActivityString(activity.getType()) + activity.getConfidence() + "%\n";
             }
             if (maxIdx != -1) {
@@ -398,8 +424,19 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                 if (
                         (lastAction == 3 || lastAction == 0) &&  //이전 행동이 멈춰있거나 교통수단에 탑승한 상태 일떄
                                 (maxIdx == 3 || maxIdx == 0)  //멈춰있거나 교통수단에 탑승한 상태 일때.
-                )
+                ) {
                     strStatus += "일정시간 이상 정지하고 계십니다. 독서(습관)를 수행하세요. \n";
+                    /* 습관 상기 팝업 */
+                    if(!habitPopUpFlag) {
+                        Intent popUpIntent = new Intent(getApplicationContext(), PopUpScreen.class);
+                        popUpIntent.putExtra("data", locationHelper.getHabitName() + "을(를) 해야합니다!");
+                        getApplication().startActivity(popUpIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                        habitPopUpFlag = true;
+                    }
+                }
+                else{
+                    habitPopUpFlag=false;
+                }
                 lastAction = maxIdx;
             }
             if (firstTimeCall == 0) {
@@ -411,7 +448,6 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
             //detectedActivities.setText(strStatus);
 
         }
-
     }
 
     public String getActivityString(int detectedActivityType) {
@@ -437,7 +473,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                 return resources.getString(R.string.tilting);
             case DetectedActivity
                     .UNKNOWN:
-                return resources.getString(R.string.unknown);
+                return "Un"+resources.getString(R.string.still) ;
             case DetectedActivity
                     .WALKING:
                 return resources.getString(R.string.walking);

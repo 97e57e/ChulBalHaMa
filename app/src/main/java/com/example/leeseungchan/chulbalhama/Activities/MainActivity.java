@@ -201,4 +201,10 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         mainCreated=false;
     }
+
+    @Override
+    protected  void onPause(){
+        super.onPause();
+        Log.e("onPause", "onPause");
+    }
 }
