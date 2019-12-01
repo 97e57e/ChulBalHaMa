@@ -35,6 +35,7 @@ import androidx.work.WorkManager;
 
 
 
+
 import com.example.leeseungchan.chulbalhama.Activities.MainActivity;
 import com.example.leeseungchan.chulbalhama.DBHelper;
 import com.example.leeseungchan.chulbalhama.R;
@@ -57,15 +58,14 @@ import java.util.concurrent.TimeUnit;
 
 public class HamaService extends Service implements GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, GoogleApiClient.ConnectionCallbacks {
 //public class HamaService extends  Service{
+
     static long countTime = 0;
     static long activityTimes[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     static int lastAction = -1;
 
-
     public static final String TAG = MainActivity.class.getSimpleName();
     protected GoogleApiClient googleApiClient; // activity recognition handle
     protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
-
 
 
     public static final String CHANNEL_ID = "service_channel";
@@ -73,7 +73,6 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
     Notification notification;
     LocationUpdateThread locationThread;
     LocationHelper locationHelper;
-
 
     int lastTimeInterval = 0;
     boolean flag = false;
@@ -352,6 +351,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
             if (i == 3) {
                 if (lastAction == i) {
                     activityTimes[i + 1] += activityTimes[i] + (System.currentTimeMillis() - countTime);
+
                 } else {
                     activityTimes[i + 1] += activityTimes[i];
                 }
