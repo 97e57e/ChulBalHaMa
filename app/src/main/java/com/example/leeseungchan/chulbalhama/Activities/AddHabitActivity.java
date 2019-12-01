@@ -3,6 +3,7 @@ package com.example.leeseungchan.chulbalhama.Activities;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
@@ -28,6 +29,8 @@ import com.example.leeseungchan.chulbalhama.Adpater.PrepareAdapter;
 import com.example.leeseungchan.chulbalhama.DBHelper;
 import com.example.leeseungchan.chulbalhama.DayDialog;
 import com.example.leeseungchan.chulbalhama.R;
+import com.example.leeseungchan.chulbalhama.Service.HamaService;
+import com.example.leeseungchan.chulbalhama.Service.LocationHelper;
 import com.example.leeseungchan.chulbalhama.UI.components.CustomChangeDeleteItem;
 import com.example.leeseungchan.chulbalhama.UI.components.CustomSevenDayInfo;
 import com.example.leeseungchan.chulbalhama.VO.HabitsVO;
@@ -138,6 +141,11 @@ public class AddHabitActivity extends AppCompatActivity{
                 if(checkEvertThingInserted()){
                     insertHabit();
                     customSevenDayInfo.updateDayHabit(days, getNewestHabitId());
+//                    LocationHelper helper = LocationHelper.getLocationHelper(getApplicationContext());
+//                    helper.getLocation();
+
+                    Intent intent = new Intent(AddHabitActivity.this, HamaService.class);
+                    startService(intent);
                     finish();
                 }
             }

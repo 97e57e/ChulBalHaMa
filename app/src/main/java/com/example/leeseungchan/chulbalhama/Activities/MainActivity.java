@@ -167,9 +167,9 @@ public class MainActivity extends AppCompatActivity
         if (grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             Log.d("Permission","승인!");
-            Intent intent = new Intent(MainActivity.this, HamaService.class);
-
-            startService(intent);
+//            Intent intent = new Intent(MainActivity.this, HamaService.class);
+//
+//            startService(intent);
         } else {
             AlertDialog.Builder localBuilder = new AlertDialog.Builder(this);
             localBuilder.setTitle("권한 설정")

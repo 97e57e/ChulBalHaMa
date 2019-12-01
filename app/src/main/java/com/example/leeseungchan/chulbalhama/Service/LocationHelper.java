@@ -265,51 +265,52 @@ public class LocationHelper {
 //        getLocation();
     }
 
-    public void setUpdateInterval(int interval){
-        this.updateInterval = interval;
-        lm.removeUpdates(gpsLocationListener);
-
-
-        notiCondition();
-
-        gpsLocationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-
-                String provider = location.getProvider();
-                double longitude = location.getLongitude();
-                double latitude = location.getLatitude();
-
-                longitude = calc.formattingPoint(longitude);
-                latitude = calc.formattingPoint(latitude);
-                curr_lat = latitude;
-                curr_lon = longitude;
-                Log.d("LocationHelper", "Current Lat : " + latitude);
-                Log.d("LocationHelper", "Current Lon : " + longitude);
-                //TODO 유저의 위치 vs 목적지(목적지 테이블) 위치 / 집 위치 (유저 테이블) 비교
-                //TODO 시간 비교해서 해당 습관에 대한 Notification or PopUp
-
-                notiCondition();
-
-                if(!activityRecognitionStart)
-                {
-
-
-                }
-
-                lastLatitude = latitude;
-                lastLongitude = longitude;
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
-    }
+    /* set Interval */
+//    public void setUpdateInterval(int interval){
+//        this.updateInterval = interval;
+//        lm.removeUpdates(gpsLocationListener);
+//
+//
+//        notiCondition();
+//
+//        gpsLocationListener = new LocationListener() {
+//            public void onLocationChanged(Location location) {
+//
+//                String provider = location.getProvider();
+//                double longitude = location.getLongitude();
+//                double latitude = location.getLatitude();
+//
+//                longitude = calc.formattingPoint(longitude);
+//                latitude = calc.formattingPoint(latitude);
+//                curr_lat = latitude;
+//                curr_lon = longitude;
+//                Log.d("LocationHelper", "Current Lat : " + latitude);
+//                Log.d("LocationHelper", "Current Lon : " + longitude);
+//                //TODO 유저의 위치 vs 목적지(목적지 테이블) 위치 / 집 위치 (유저 테이블) 비교
+//                //TODO 시간 비교해서 해당 습관에 대한 Notification or PopUp
+//
+//                notiCondition();
+//
+//                if(!activityRecognitionStart)
+//                {
+//
+//
+//                }
+//
+//                lastLatitude = latitude;
+//                lastLongitude = longitude;
+//            }
+//
+//            public void onStatusChanged(String provider, int status, Bundle extras) {
+//            }
+//
+//            public void onProviderEnabled(String provider) {
+//            }
+//
+//            public void onProviderDisabled(String provider) {
+//            }
+//        };
+//    }
 
 
     public void notiCondition() {
@@ -332,7 +333,8 @@ public class LocationHelper {
             /* 집일때 처리 후문 위치를 넣어놓자. 이때 최초에 집에서 나갈 준비를 하세요 라는 걸 띄워줌.*/
         if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 100){
             userState = "HOME";
-            notification = nBuilder.setContentTitle("집에 있다.").build();
+            notification = nBuilder.setContentTitle(habitName + "을 할 준비가 되셨나요?").build();
+            manager.notify(3, notification);
             /* 학교일때 처리 이때 '잘 했냐?' 팝업창을 띄워줌 */
         } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 100){
             userState = "SCHOOL";

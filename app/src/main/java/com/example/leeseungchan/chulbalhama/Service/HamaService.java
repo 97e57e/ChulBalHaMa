@@ -125,7 +125,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                 0, notificationIntent, 0);
 
         Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
-                .setContentTitle("하마 서비스~")
+                .setContentTitle("출발 하마!")
                 .setContentText(input)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentIntent(pendingIntent)
@@ -161,11 +161,11 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
                     NotificationManager.IMPORTANCE_DEFAULT
             );
 
-            notification = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID) //CHANNEL_ID 채널에 지정한 아이디
-                    .setContentTitle("background machine")
-                    .setContentText("알림입니다")
-                    .setSmallIcon(R.mipmap.ic_launcher_round)
-                    .setOngoing(true).build();
+//            notification = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID) //CHANNEL_ID 채널에 지정한 아이디
+//                    .setContentTitle("background machine")
+//                    .setContentText("알림입니다")
+//                    .setSmallIcon(R.mipmap.ic_launcher_round)
+//                    .setOngoing(true).build();
 
             manager = getSystemService(NotificationManager.class);
             manager.createNotificationChannel(serviceChannel);
@@ -485,11 +485,6 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         googleApiClient.disconnect();
     }
 
-
-
-
-
-
     static Calendar getNextSchedule(Calendar current){
 
 //        DBHelper helper = new DBHelper(this);
@@ -538,6 +533,4 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         WorkManager.getInstance().enqueueUniqueWork("uniqueWork", ExistingWorkPolicy.REPLACE,workRequest);
 
     }
-
-
 }
