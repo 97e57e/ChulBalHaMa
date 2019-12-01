@@ -1,11 +1,13 @@
 package com.example.leeseungchan.chulbalhama.Adpater;
 
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.leeseungchan.chulbalhama.Activities.HabitInfoActivity;
 import com.example.leeseungchan.chulbalhama.DBHelper;
@@ -25,17 +28,20 @@ import java.util.ArrayList;
 public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHolder> {
 
     private ArrayList<HabitsVO> mDataSet = new ArrayList<>();
-
+    // Item의 클릭 상태를 저장할 array 객체
+    private SparseBooleanArray selectedItems = new SparseBooleanArray();
+    // 직전에 클릭됐던 Item의 position
+    private int prePosition = -1;
+    
     // ViewHolder
-    public class HabitViewHolder extends RecyclerView.ViewHolder{
+    public class HabitViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         public TextView habitName;
         public TextView habitDescription;
         private TextView habitInfo, habitHistory, habitDelete;
         private LinearLayout linearLayout;
-        private CheckBox showAdditional;
         private View view;
         private HabitViewHolder holder;
-        private boolean isChecked = true;
+        private int position;
 
         public HabitViewHolder(@NonNull final View v){
             super(v);
@@ -43,65 +49,21 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             holder = this;
             habitName = v.findViewById(R.id.item_habit_name);
             habitDescription = v.findViewById(R.id.item_habit_description);
-            showAdditional = v.findViewById(R.id.show_additional);
-            showAdditional.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                    if(isChecked){
-                        habitInfo.setVisibility(View.VISIBLE);
-                        habitHistory.setVisibility(View.VISIBLE);
-                        habitDelete.setVisibility(View.VISIBLE);
-                    }else{
-                        habitInfo.setVisibility(View.GONE);
-                        habitHistory.setVisibility(View.GONE);
-                        habitDelete.setVisibility(View.GONE);
-                    }
-                }
-            });
+           
+    
+    
     
             linearLayout = v.findViewById(R.id.list_habit);
-            linearLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if(isChecked){
-                        habitInfo.setVisibility(View.VISIBLE);
-                        habitHistory.setVisibility(View.VISIBLE);
-                        habitDelete.setVisibility(View.VISIBLE);
-                        isChecked = false;
-                        showAdditional.setChecked(true);
-                    }else{
-                        habitInfo.setVisibility(View.GONE);
-                        habitHistory.setVisibility(View.GONE);
-                        habitDelete.setVisibility(View.GONE);
-                        isChecked = true;
-                        showAdditional.setChecked(false);
-                    }
-                }
-            });
-            
             habitInfo = v.findViewById(R.id.info);
-            habitInfo.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    startIntent(0, holder);
-                }
-            });
-            
             habitHistory = v.findViewById(R.id.history);
-            habitHistory.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    startIntent(1, holder);
-                }
-            });
             habitDelete = v.findViewById(R.id.delete);
-            habitDelete.setOnClickListener(new View.OnClickListener(){
-                @Override
-                public void onClick(View v){
-                    deleteHabit(getAdapterPosition(), view.getContext());
-                    notifyDataSetChanged();
-                }
-            });
+            
+            
+            linearLayout.setOnClickListener(this);
+            habitInfo.setOnClickListener(this);
+            habitHistory.setOnClickListener(this);
+            habitDelete.setOnClickListener(this);
+            
         }
 
         public void setHabit(HabitsVO itemHabit){
@@ -109,7 +71,79 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
             String description = itemHabit.getDue() + "일";
             habitDescription.setText(description);
         }
+        
+        void onBind(int position){
+            this.position = position;
+    
+            changeVisibility(selectedItems.get(position));
+        }
+        
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.list_habit:
+                    // opened Item clicked
+                    if (selectedItems.get(position)) {
+                        selectedItems.delete(position);
+                    } else { // other Item clicked
+                        selectedItems.delete(prePosition);
+                        selectedItems.put(position, true);
+                    }
+                    
+                    // notify change
+                    if (prePosition != -1)
+                        notifyItemChanged(prePosition);
+                    notifyItemChanged(position);
+                    
+                    // set clicked position
+                    prePosition = position;
+                    break;
+                case R.id.info:
+                    startIntent(0, holder);
+                    break;
+                case R.id.history:
+                    startIntent(1, holder);
+                    break;
+                case R.id.delete:
+                    deleteHabit(getAdapterPosition(), view.getContext());
+                    notifyDataSetChanged();
+                    break;
+            }
+        }
+    
+        private void changeVisibility(final boolean isExpanded) {
+            int dpValue = 150;
+            float d = view.getContext().getResources().getDisplayMetrics().density;
+            int height = (int) (dpValue * d);
+        
+            // ValueAnimator.ofInt(int... values) set which to/from
+            ValueAnimator va;
+            if(isExpanded)
+                va = ValueAnimator.ofInt(0, height);
+            else
+                va = ValueAnimator.ofInt(height, 0);
+           
+            // 0.6 sec
+            va.setDuration(600);
+            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    if(isExpanded){
+                        habitInfo.setVisibility(View.VISIBLE);
+                        habitHistory.setVisibility(View.VISIBLE);
+                        habitDelete.setVisibility(View.VISIBLE);
+                    }else{
+                        habitInfo.setVisibility(View.GONE);
+                        habitHistory.setVisibility(View.GONE);
+                        habitDelete.setVisibility(View.GONE);
+                    }
+                }
+            });
+            // Animation start
+            va.start();
+        }
     }
+    
 
     public HabitAdapter(){
         // empty constructor
@@ -136,6 +170,7 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
     public void onBindViewHolder(HabitViewHolder holder, int position){
         HabitsVO item = mDataSet.get(position);
         holder.setHabit(item);
+        holder.onBind(position);
     }
 
     @Override
@@ -164,9 +199,9 @@ public class HabitAdapter extends RecyclerView.Adapter<HabitAdapter.HabitViewHol
         mDataSet.remove(position);
     }
     private void deleteOnHabitTable(int id, Context context){
-        DBHelper dbHelper = new DBHelper(context);
+        DBHelper dbHelper =  DBHelper.getInstance(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        
+
         String sql = "delete from habits where _id = ?";
         db.execSQL(sql, new Object[]{id});
         db.close();

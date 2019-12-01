@@ -46,7 +46,7 @@ public class CustomSevenDayInfo {
     }
     
     private void setTimeRowFromDB(){
-        DBHelper helper = new DBHelper(view.getContext());
+        DBHelper helper = DBHelper.getInstance(view.getContext());
         SQLiteDatabase db = helper.getReadableDatabase();
         Cursor cursor = db.rawQuery("select departure_time from day_of_week ", new String[]{});
         
@@ -87,7 +87,7 @@ public class CustomSevenDayInfo {
     }
     
     public void updateTimeToDays(ArrayList<Boolean> selectable, ArrayList<String> times){
-        DBHelper dbHelper = new DBHelper(view.getContext());
+        DBHelper dbHelper = DBHelper.getInstance(view.getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         
         String sqlToGetDestID = "select _id from destinations order by _id DESC limit 1";
@@ -96,14 +96,27 @@ public class CustomSevenDayInfo {
         int destId = c.getInt(0);
         String sqlToUpdate = "update day_of_week set ";
         for(int i = 0; i < 7; i++){
-            Log.e("times", i +"and"+times.get(i));
             if(selectable.get(i)){
                 String time = "\"" + times.get(i) +"\"";
                 db.execSQL(sqlToUpdate + "departure_time=" + time + ", destination_id="
                     + destId + " where day=" + "\""+dayName.get(i)+ "\"");
             }
         }
-        Log.d("destination id", destId+"dest");
+        db.close();
+    }
+    
+    public void updateDayHabit(ArrayList<Boolean> selectable, int habitId){
+        if(habitId == -1)
+            return;
+        
+        DBHelper helper = DBHelper.getInstance();
+        SQLiteDatabase db = helper.getWritableDatabase();
+        String update = "update day_of_week set habit_id=? where day=?";
+        for(int i = 0; i < 7; i++){
+            if(selectable.get(i)){
+                db.execSQL(update, new Object[]{habitId, dayName.get(i)});
+            }
+        }
         db.close();
     }
     
@@ -121,7 +134,7 @@ public class CustomSevenDayInfo {
 
     public void setPlaceData(){
 
-        DBHelper helper = new DBHelper(view.getContext());
+        DBHelper helper = DBHelper.getInstance(view.getContext());
         SQLiteDatabase db = helper.getReadableDatabase();
         String sql =
             "select destination_id from day_of_week";
@@ -160,6 +173,26 @@ public class CustomSevenDayInfo {
                 }
             }
         }
+    }
+    
+    public void showSelectedDay(int selectedHabitId){
+        DBHelper helper = DBHelper.getInstance();
+        SQLiteDatabase db = helper.getReadableDatabase();
+        String sql ="select habit_id from day_of_week";
+        Cursor habitId = db.rawQuery(sql, null);
+    
+        for(int i = 0; i < 7; i++){
+            habitId.moveToNext();
+            if (habitId.getInt(0) == selectedHabitId) {
+                dayInputs.get(i).setBackgroundColor(
+                    view.getResources().getColor(R.color.colorTertiary));
+            }else{
+                dayInputs.get(i).setBackgroundColor(
+                    view.getResources().getColor(R.color.common_google_signin_btn_text_dark_default)
+                );
+            }
+        }
+        db.close();
     }
 
 }

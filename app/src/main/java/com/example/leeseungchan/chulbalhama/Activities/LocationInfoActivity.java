@@ -16,6 +16,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -30,11 +31,15 @@ import com.example.leeseungchan.chulbalhama.VO.LocationVO;
 import java.util.ArrayList;
 
 public class LocationInfoActivity extends AppCompatActivity{
+    private LocationVO locationVO = null;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_location_info);
-
+        if(savedInstanceState != null) {
+            locationVO = (LocationVO) savedInstanceState.getSerializable("locationVO");
+        }
+        
         Intent intent = getIntent();
         int type = intent.getIntExtra("type", 1);
 
@@ -58,6 +63,18 @@ public class LocationInfoActivity extends AppCompatActivity{
         getSupportActionBar().setHomeAsUpIndicator(R.drawable.ic_arrow_back);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
     }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
     @Override
     public void setTitle(int id){
@@ -73,10 +90,11 @@ public class LocationInfoActivity extends AppCompatActivity{
     }
     
     private void showLocationInfoFragment(int type){
-        
         // data to show
-        LocationVO locationVO = new LocationVO();
-        ArrayList<String> dayOfWeekTime = null;
+        if(locationVO == null){
+           locationVO = new LocationVO();
+        }
+        ArrayList<String> dayOfWeekTime = new ArrayList<>();
         Bundle bundle = makeBundle(locationVO, dayOfWeekTime);
         
         // candidates to show as fragment

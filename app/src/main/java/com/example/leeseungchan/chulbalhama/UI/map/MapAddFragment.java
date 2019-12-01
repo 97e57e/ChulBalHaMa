@@ -160,7 +160,6 @@ public class MapAddFragment extends Fragment implements View.OnClickListener{
         LocationVO temp = (LocationVO) bundle.getSerializable("locationVO");
         temp.setLongitude(saveLon);
         temp.setLatitude(saveLat);
-        Log.e("VO class", saveLon + "와" + saveLat + "이 들어갑니다.");
         if(view.getId() == R.id.register_btn){
 
             switch (bundle.getInt("type")) {

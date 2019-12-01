@@ -41,7 +41,22 @@ public class LocationVO implements Serializable {
     }
     
     public String getTime(){
-        return timeHour + " : " + timeMin;
+        StringBuffer time = new StringBuffer();
+        if(timeHour < 0 || timeMin < 0){
+            return null;
+        }
+        
+        if(timeHour < 10){
+            time.append("0");
+        }
+        time.append(timeHour + ":");
+        
+        if(timeMin < 10){
+            time.append("0");
+        }
+        time.append(timeMin);
+        
+        return time.toString();
     }
     
     public int getTimeHour() {
@@ -53,7 +68,10 @@ public class LocationVO implements Serializable {
     }
     
     public String getCoordinate(){
-        return longitude + ", " + latitude;
+        if(longitude < 0 || latitude < 0){
+            return null;
+        }
+        return latitude + "," + longitude;
     }
 
     public void setLatitude(double lat){

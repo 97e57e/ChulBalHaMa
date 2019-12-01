@@ -17,12 +17,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
-
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 import android.widget.Toast;
-
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +32,7 @@ import androidx.work.ExistingWorkPolicy;
 import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
+
 
 
 import com.example.leeseungchan.chulbalhama.Activities.MainActivity;
@@ -49,18 +48,24 @@ import com.google.android.gms.location.DetectedActivity;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import java.util.Locale;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public class HamaService extends Service implements GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status>, GoogleApiClient.ConnectionCallbacks {
+//public class HamaService extends  Service{
     static long countTime = 0;
     static long activityTimes[] = {0, 0, 0, 0, 0, 0, 0, 0, 0};
     static int lastAction = -1;
 
+
     public static final String TAG = MainActivity.class.getSimpleName();
     protected GoogleApiClient googleApiClient; // activity recognition handle
     protected ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+
 
 
     public static final String CHANNEL_ID = "service_channel";
@@ -70,8 +75,12 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
     LocationHelper locationHelper;
 
 
+    int lastTimeInterval = 0;
+    boolean flag = false;
+
     int count=0;
     boolean startupdate=false;
+
     Calendar car;
 
     public class HamaServiceBinder extends Binder {
@@ -94,7 +103,6 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
     }
 
     //액티비티에서 서비스 함수를 호출하기 위한 함수 생성
-
     public void setLocationHelper(LocationHelper helper) {
     }
 
@@ -110,12 +118,11 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("HamaService", "onStartCommand");
 
-
-        mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
-        buildGoogleApiClient();
-        googleApiClient.connect();//추가
-        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
-
+//        mBroadcastReceiver = new ActivityDetectionBroadcastReceiver();
+//        buildGoogleApiClient();
+//        googleApiClient.connect();//추가
+//        LocalBroadcastManager.getInstance(this).registerReceiver(mBroadcastReceiver, new IntentFilter(Constants.BROADCAST_ACTION));
+//
 
         String input = intent.getStringExtra("inputExtra");
         createNotificationChannel();
@@ -134,7 +141,7 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         HamaHandler hamaHandler = new HamaHandler();
         locationThread = new LocationUpdateThread(hamaHandler);
         locationThread.start();
-        locationHelper = new LocationHelper(getApplicationContext());
+        locationHelper = LocationHelper.getLocationHelper(getApplicationContext());
         locationHelper.getLocation();
 
         startForeground(1, notification);
@@ -176,28 +183,35 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 
         public void handleMessage(android.os.Message msg) {
             if (locationHelper != null) {
-                locationHelper.setUpdateInterval(adjustTimeInterval());
+                Log.e("Handler" , "도나?");
+
+                if (flag){
+                    locationHelper.setUpdateInterval(adjustTimeInterval());
+                    locationHelper.removeUpdates();
+                    locationHelper.getLocationListener();
+                    flag=false;
+                }
             }
-            requestActivityUpdates();
+//            requestActivityUpdates();
             Log.e("HAMAHandler", "Request Activity");
 
 
         }
     }
 
-    public int adjustTimeInterval(){
-        int interval ;
-        long diff=0;
-        long diff2=0;
-        long sec=0;
-        long sec2=0;
-        boolean isHome= true;
+    public int adjustTimeInterval() {
+        int interval = 500000;
+        long diff = 0;
+        long diff2 = 0;
+        long sec = 0;
+        long sec2 = 0;
+        boolean isHome = true;
 
         /* 오늘의 요일은? */
         car = Calendar.getInstance();
         int dayOfWeeks = car.get(Calendar.DAY_OF_WEEK);
         int dayId = 0;
-        switch (dayOfWeeks){
+        switch (dayOfWeeks) {
             case 1:
                 dayId = 6; // 일
                 break;
@@ -228,60 +242,78 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
         Log.d("CurrentTime?", currentTime);
 
         /* 오늘 출발 시간 조회 */
-        DBHelper helper = new DBHelper(this);
+        DBHelper helper = DBHelper.getInstance(this);
         SQLiteDatabase db = helper.getWritableDatabase();
         String daySql = "select departure_time, destination_id from day_of_week where _id = ?";
-        Cursor c = db.rawQuery(daySql, new String[]{ Integer.toString(dayId+1)}, null);
+        Cursor c = db.rawQuery(daySql, new String[]{Integer.toString(dayId + 1)}, null);
         c.moveToNext();
-        Log.d("Hama", c.toString());
-        String todayDepartureTime = c.getString(0);
-        Log.d("DepartureTime", todayDepartureTime);
+        try {
+            String todayDepartureTime = c.getString(0);
+            Log.d("DepartureTime", todayDepartureTime);
 
-        /* 오늘 도착 예정 시간 조회*/
-        int destination_id = c.getInt(1);
-        String arrivalSql = "select time from destinations where _id = ?";
-        Cursor c2 = db.rawQuery(arrivalSql, new String[]{Integer.toString(destination_id)}, null);
-        c2.moveToNext();
-        String arrivalTime = c2.getString(0);
-        Log.d("Destination Time", arrivalTime);
+            /* 오늘 도착 예정 시간 조회*/
+            int destination_id = c.getInt(1);
+            String arrivalSql = "select time from destinations where _id = ?";
+            Cursor c2 = db.rawQuery(arrivalSql, new String[]{Integer.toString(destination_id)}, null);
+            c2.moveToNext();
+            String arrivalTime = c2.getString(0);
+            Log.d("Destination Time", arrivalTime);
 
-        /* 현재 시간과 오늘 출발 시간 비교 */
-        Date curretnDateTime;
-        Date departureDateTime;
-        Date arrivalDateTime;
+            /* 현재 시간과 오늘 출발 시간 비교 */
+            Date curretnDateTime;
+            Date departureDateTime;
+            Date arrivalDateTime;
 
-        try{
-            curretnDateTime = format.parse(currentTime);
-            departureDateTime = format.parse(todayDepartureTime);
-            arrivalDateTime = format.parse(arrivalTime);
-            diff = Math.abs(curretnDateTime.getTime() - departureDateTime.getTime());
-            diff2 = Math.abs(curretnDateTime.getTime() - arrivalDateTime.getTime());
-        }catch (Exception e){}
-
-        sec = diff/1000;
-        sec2 = diff2/1000;
-        Log.d("Sec Diff", Long.toString(sec));
-        /* 집에 있으면 */
-        if (isHome) {
-            /* 출발하기 바로 전 */
-            if (sec < 1800) {
-                return 180000;
-                /* 아니면 */
-            } else {
-                return 36000000;
+            try {
+                curretnDateTime = format.parse(currentTime);
+                departureDateTime = format.parse(todayDepartureTime);
+                arrivalDateTime = format.parse(arrivalTime);
+                diff = Math.abs(curretnDateTime.getTime() - departureDateTime.getTime());
+                diff2 = Math.abs(curretnDateTime.getTime() - arrivalDateTime.getTime());
+            } catch (Exception e) {
             }
-            /* 집에서 나왔으면*/
-        } else {
-            /* 도착하기 조금 전*/
-            if (sec2<1200){
-                return 180000;
-                /* 이동중엔*/
+
+
+
+            sec = diff / 1000;
+            sec2 = diff2 / 1000;
+            Log.d("Sec Diff", Long.toString(sec));
+            Log.d("Sec2 Diff", Long.toString(sec2));
+            /* 집에 있으면 */
+            if (locationHelper.getUserState() == "HOME") {
+                Log.d("HAMAService", "유저가 집에 있습니다!");
+                /* 출발하기 바로 전 */
+                if (sec < 3600) {
+                    interval = 180000;
+                    /* 아니면 */
+                } else {
+                    interval = 36000000;
+                }
+                /* 집에서 나왔으면*/
             } else {
-                return 9000000;
+                Log.d("HAMAService", "유저가 집에서 나왔습니다!");
+                /* 도착하기 조금 전*/
+                if (sec2 < 1200) {
+//                    interval = 30000;
+                    interval = 5000;
+                    /* 이동중엔*/
+                } else {
+//                    interval = 900000;
+                    interval = 5000;
+                }
             }
+        } catch (Exception e){ Log.e("HamaService", "Exception"); }
+
+        Log.e("MAHA_S", Integer.toString(lastTimeInterval));
+        Log.e("HAMA_S", Integer.toString(interval));
+        if (interval != lastTimeInterval){
+            flag = true;
         }
+        lastTimeInterval = interval;
+        return interval;
     }
-
+//
+//
     public void requestActivityUpdates() {
         if (!googleApiClient.isConnected()) {
             Log.e("Client Not ", "request Sucess");

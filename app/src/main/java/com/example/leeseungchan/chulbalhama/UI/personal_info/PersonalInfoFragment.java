@@ -9,6 +9,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -34,15 +35,17 @@ public class PersonalInfoFragment extends Fragment{
     private ArrayList<DestinationsVO> destinations = new ArrayList<>();
     private DBHelper dbHelper;
     private UserVO userVO;
+    private View view;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle saveInstanceState) {
         View v = inflater.inflate(R.layout.fragment_personal_info, container, false);
-        dbHelper = new DBHelper(getContext());
+        dbHelper = DBHelper.getInstance(getContext());
         
         userVO = getUserVO();
+        view = v;
         
         /* name */
         setPersonalInfoChangeDeleteItem(v, R.id.info_name);
@@ -91,7 +94,7 @@ public class PersonalInfoFragment extends Fragment{
 
     public void retrieve(){
         destinations.clear();
-        DBHelper dbHelper = new DBHelper(getContext());
+        DBHelper dbHelper = DBHelper.getInstance(getContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String sql = "select destination_name, _id from destinations";
         Cursor c = db.rawQuery(sql, null);
@@ -152,7 +155,7 @@ public class PersonalInfoFragment extends Fragment{
 
     private void setNameDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-        builder.setTitle("Title");
+        builder.setTitle("이름 바꾸기");
         View viewInflated =
                 LayoutInflater.from(getContext())
                         .inflate(R.layout.dialog_edit_text, (ViewGroup) getView(), false);
@@ -168,6 +171,8 @@ public class PersonalInfoFragment extends Fragment{
                 SQLiteDatabase db = dbHelper.getReadableDatabase();
                 db.execSQL("update user set name=\""+ newName + "\" where _id=1");
                 db.close();
+    
+                refresh();
             }
         });
 
@@ -182,7 +187,7 @@ public class PersonalInfoFragment extends Fragment{
     }
     
     private UserVO getUserVO(){
-        dbHelper = new DBHelper(getContext());
+        dbHelper = DBHelper.getInstance(getContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
     
         Cursor cursor =  db.rawQuery("select * from user where _id=1", null);
@@ -195,5 +200,10 @@ public class PersonalInfoFragment extends Fragment{
         );
         db.close();
         return userVO;
+    }
+    
+    private void refresh(){
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.detach(this).attach(this).commit();
     }
 }

@@ -98,7 +98,7 @@ public class PrepareAdapter extends RecyclerView.Adapter<PrepareAdapter.ListView
     }
     
     private void updateHabitPrepareDB(String prepare, int id,Context context){
-        DBHelper dbHelper = new DBHelper(context);
+        DBHelper dbHelper = DBHelper.getInstance(context);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String sql = "update habits set prepare = ? where _id = ? ";
         db.execSQL(sql, new Object[]{prepare, id});

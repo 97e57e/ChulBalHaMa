@@ -38,8 +38,7 @@
                 android:layout_marginBottom="@dimen/content_space_small"
                 android:hint="@string/map_location_name_hint"
                 android:inputType="text"
-                android:maxEms="10"
-                android:minEms="1" />
+                android:maxLength="9" />
 
 
             <!-- location address -->

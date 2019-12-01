@@ -61,7 +61,8 @@ public class MainActivity extends AppCompatActivity
                     0 );
         }
 
-        DBHelper dbHelper = new DBHelper(this);
+        DBHelper dbHelper = DBHelper.getInstance(this);
+
         prefs = getSharedPreferences("Pref", MODE_PRIVATE);
 //        dbHelper.setDays();
 //        dbHelper.setUser();
@@ -134,10 +135,19 @@ public class MainActivity extends AppCompatActivity
         TextView title = (TextView)findViewById(R.id.toolbar_title);
         title.setText(id);
     }
-
+    
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.nav_host_fragment);
+    
+        transaction = fragmentManager.beginTransaction();
+        transaction.detach(fragment).attach(fragment).commitAllowingStateLoss();
+    }
+    
     public void checkFirstRun(){
         boolean isFirstRun = prefs.getBoolean("isFirstRun",true);
-        DBHelper dbHelper = new DBHelper(this);
+        DBHelper dbHelper = DBHelper.getInstance(this);
         if(isFirstRun)
         {
             dbHelper.setDays();
@@ -146,9 +156,9 @@ public class MainActivity extends AppCompatActivity
             startActivity(newIntent);
 
             prefs.edit().putBoolean("isFirstRun",false).apply();
-            //처음만 true 그다음부터는 false 바꾸는 동작
         }
     }
+    
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
@@ -186,11 +196,9 @@ public class MainActivity extends AppCompatActivity
         return;
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         mainCreated=false;
     }
-
 }

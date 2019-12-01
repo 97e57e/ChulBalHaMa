@@ -24,13 +24,13 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:maxLength="4">
 
                 <AutoCompleteTextView
                     android:id="@+id/input"
-                    android:layout_width="wrap_content"
+                    android:layout_width="50dp"
                     android:layout_height="wrap_content"
-                    android:hint="10"
                     android:imeOptions="actionDone"
                     android:inputType="numberDecimal" />
 

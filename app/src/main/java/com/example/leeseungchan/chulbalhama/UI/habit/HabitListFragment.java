@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 
 import com.example.leeseungchan.chulbalhama.Activities.AddHabitActivity;
@@ -33,7 +35,7 @@ public class HabitListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle saveInstanceState) {
         View v = inflater.inflate(R.layout.fragment_habit_list, container, false);
-
+        
         // set up recycler view
         setRecyclerView(v);
 
@@ -44,6 +46,7 @@ public class HabitListFragment extends Fragment {
             public void onClick(View v){
                 Intent intent = new Intent(getContext(), AddHabitActivity.class);
                 startActivity(intent);
+    
             }
         });
 
@@ -55,7 +58,7 @@ public class HabitListFragment extends Fragment {
     private void retrieve(){
         habits.clear();
 
-        DBHelper dbHelper = new DBHelper(getContext());
+        DBHelper dbHelper = DBHelper.getInstance(getContext());
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String sql = "select * from habits";
         Cursor c = db.rawQuery(sql, null);

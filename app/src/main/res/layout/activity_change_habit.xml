@@ -34,11 +34,5 @@
         android:layout_height="wrap_content"
         layout="@layout/content_main"/>
 
-    <!--<include-->
-        <!--android:id="@+id/history_frag"-->
-        <!--app:layout_constraintTop_toBottomOf="@id/change_delete"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--layout="@layout/content_main"/>-->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

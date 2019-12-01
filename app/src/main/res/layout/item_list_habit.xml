@@ -17,7 +17,7 @@
 
         <Switch
             android:id="@+id/item_habit_name"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:layout_marginBottom="10dp"
@@ -29,17 +29,6 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_weight="1"/>
-
-        <CheckBox
-            android:id="@+id/show_additional"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="16dp"
-            android:layout_marginStart="16dp"
-            android:background="@drawable/checkbox_menu"
-            android:button="@null"
-            />
 
     </LinearLayout>
 

@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.leeseungchan.chulbalhama.DBHelper;
 import com.example.leeseungchan.chulbalhama.Activities.LocationInfoActivity;
@@ -101,8 +102,10 @@ public class StartingPointInfoFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 if(v.getId() == R.id.store_starting){
-                    updateStartPoint();
-                    getActivity().finish();
+                    if(checkEvertThingInserted()) {
+                        updateStartPoint();
+                        getActivity().finish();
+                    }
                     
                 } else {
                     fragmentChange(MapAddFragment.newInstance(bundle), R.id.nav_host_fragment);
@@ -123,12 +126,35 @@ public class StartingPointInfoFragment extends Fragment {
     }
     
     private void updateStartPoint(){
-        DBHelper dbHelper = new DBHelper(getContext());
+        DBHelper dbHelper = DBHelper.getInstance(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         String sql = "update user set starting_name=\""+locationVO.getName() +
             "\", starting_coordinate=\""+ locationVO.getCoordinate() + "\" where _id=1";
         db.execSQL(sql);
         db.close();
         getActivity().finish();
+    }
+    
+    private boolean checkEvertThingInserted(){
+        if(!isDestNameEmpty() && !isMapUnselected()){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isDestNameEmpty(){
+        if(locationVO.getName() == null || locationVO.getName().length() == 0){
+            Toast.makeText(getActivity().getApplicationContext(), "이름을 입력해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isMapUnselected(){
+        if(locationVO.getCoordinate() == null || locationVO.getCoordinate().length() == 0){
+            Toast.makeText(getActivity().getApplicationContext(), "장소를 설정해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
     }
 }

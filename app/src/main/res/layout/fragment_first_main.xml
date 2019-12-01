@@ -64,7 +64,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
-        android:ems="10"
+        android:maxLength="9"
         android:inputType="textPersonName"
         android:hint="@string/guide_start_name"
         android:textColorHint="@color/colorPrimary"

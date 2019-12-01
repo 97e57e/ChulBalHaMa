@@ -3,6 +3,7 @@ package com.example.leeseungchan.chulbalhama.Activities;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,6 +22,7 @@ import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.leeseungchan.chulbalhama.Adpater.PrepareAdapter;
 import com.example.leeseungchan.chulbalhama.DBHelper;
@@ -34,7 +37,7 @@ import java.util.ArrayList;
 public class AddHabitActivity extends AppCompatActivity{
 
     private EditText habitName;
-    private int due;
+    private int due = -1;
     private CustomChangeDeleteItem dueItem;
     // prepare
     private ArrayList<String> prepares = new ArrayList<>();
@@ -60,7 +63,7 @@ public class AddHabitActivity extends AppCompatActivity{
         dueItem.getChange().setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                inflateDays();
+                dueDialog();
             }
         });
         
@@ -121,7 +124,7 @@ public class AddHabitActivity extends AppCompatActivity{
             public void onClick(View v) {
                 DayDialog customDialog = new DayDialog(AddHabitActivity.this);
 
-                customDialog.callFunction(days, customSevenDayInfo);
+                customDialog.callFunction(days, customSevenDayInfo, -1);
             }
         });
 
@@ -132,10 +135,24 @@ public class AddHabitActivity extends AppCompatActivity{
         store.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                insertHabit();
-                finish();
+                if(checkEvertThingInserted()){
+                    insertHabit();
+                    customSevenDayInfo.updateDayHabit(days, getNewestHabitId());
+                    finish();
+                }
             }
         });
+    }
+    
+    private int getNewestHabitId(){
+        DBHelper helper = DBHelper.getInstance();
+        SQLiteDatabase db = helper.getWritableDatabase();
+        Cursor habitId = db.rawQuery("select _id from habits order by _id DESC limit 1", null);
+        habitId.moveToNext();
+        
+        int latestHabitId = habitId.getInt(0);
+        db.close();
+        return latestHabitId;
     }
     
     private void setToolbar(){
@@ -157,7 +174,7 @@ public class AddHabitActivity extends AppCompatActivity{
     }
     
     private void insertHabit(){
-        DBHelper helper = new DBHelper(this);
+        DBHelper helper = DBHelper.getInstance(this);
         SQLiteDatabase db = helper.getWritableDatabase();
         db.execSQL(
             "insert into habits (habit_name,  due, prepare) values(?,?,?)",
@@ -169,8 +186,11 @@ public class AddHabitActivity extends AppCompatActivity{
         db.close();
     }
     
-    private void inflateDays(){
+    
+    private void dueDialog(){
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        
+        builder.setTitle("달성 목표");
         LayoutInflater inflater = this.getLayoutInflater();
         View inflatedView = inflater.inflate(R.layout.dialog_target, null);
         
@@ -195,5 +215,47 @@ public class AddHabitActivity extends AppCompatActivity{
         builder.create();
         builder.show();
     }
-
+    
+    private boolean checkEvertThingInserted(){
+        if(!isHabitNameEmpty() && !isDueEmpty() && !isDayEmpty()){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isHabitNameEmpty(){
+        if(habitName.getText().toString().length() == 0){
+            Toast.makeText(getApplicationContext(), "이름을 입력해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isDueEmpty(){
+        if(due == -1){
+            Toast.makeText(getApplicationContext(), "기한을 입력해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isDayEmpty(){
+        if(days.isEmpty()){
+            Toast.makeText(getApplicationContext(), "요일을 설정해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                finish();
+                return true;
+            
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 }

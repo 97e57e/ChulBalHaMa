@@ -11,11 +11,24 @@ import android.util.Log;
 public class DBHelper extends SQLiteOpenHelper {
 
     public static final int DB_VERSION =7;
-    //스키마 변경 및 수정시에 DB_VERSION 바꿔주기
+    private static DBHelper mInstance = null;
 
-    public DBHelper(Context context){
+    //스키마 변경 및 수정시에 DB_VERSION 바꿔주기
+    private DBHelper(Context context){
         super(context,"todo_db",null,DB_VERSION);
     }
+
+    public static DBHelper getInstance(Context c)
+    {
+        if(mInstance==null)
+            mInstance = new DBHelper(c);
+        return mInstance;
+    }
+    public static DBHelper getInstance()
+    {
+        return mInstance;
+    }
+
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {

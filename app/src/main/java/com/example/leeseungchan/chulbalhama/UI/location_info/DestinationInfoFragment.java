@@ -218,19 +218,21 @@ public class DestinationInfoFragment extends Fragment{
         v.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // insert destination data to sqlite db
-                insertDest(locationVO.getCoordinate(), locationVO.getTime(), locationVO.getName());
+                if(checkEvertThingInserted()) {
+                    // insert destination data to sqlite db
+                    insertDest(locationVO.getCoordinate(), locationVO.getTime(), locationVO.getName());
     
-                // update dayOfWeek table.
-                updateDayOfWeek();
+                    // update dayOfWeek table.
+                    updateDayOfWeek();
     
-                getActivity().finish();
+                    getActivity().finish();
+                }
             }
         });
     }
     
     private void insertDest(String coordinate, String time, String name){
-        DBHelper dbHelper = new DBHelper(getContext());
+        DBHelper dbHelper =  DBHelper.getInstance(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         // destination
         String sql = "insert into destinations (coordinate, time, destination_name) values(?,?,?)";
@@ -243,5 +245,44 @@ public class DestinationInfoFragment extends Fragment{
         ArrayList<String> times = new ArrayList<>();
         sevenDayInfo.getResultTimeDataInput(times);
         sevenDayInfo.updateTimeToDays(days,times);
+    }
+    
+    private boolean checkEvertThingInserted(){
+        if(!isDestNameEmpty() && !isMapUnselected() && !isTimeEmpty() && !isDayEmpty()){
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isDestNameEmpty(){
+        if(locationVO.getName() == null || locationVO.getName().length() == 0){
+            Toast.makeText(getActivity().getApplicationContext(), "이름을 입력해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isTimeEmpty(){
+        if(locationVO.getTime() == null || locationVO.getTime().length() == 0){
+            Toast.makeText(getActivity().getApplicationContext(), "소요시간을 입력해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isMapUnselected(){
+        if(locationVO.getCoordinate() == null || locationVO.getCoordinate().length() == 0){
+            Toast.makeText(getActivity().getApplicationContext(), "장소를 설정해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
+    }
+    
+    private boolean isDayEmpty(){
+        if(days.isEmpty()){
+            Toast.makeText(getActivity().getApplicationContext(), "요일과 시간을 설정해 주시기 바랍니다.",Toast.LENGTH_SHORT).show();
+            return true;
+        }
+        return false;
     }
 }
