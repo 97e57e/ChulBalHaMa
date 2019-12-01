@@ -331,12 +331,13 @@ public class LocationHelper {
         Log.d("Current Location" , "학교와 나로부터의 거리 ? " + Double.toString(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter")));
 
             /* 집일때 처리 후문 위치를 넣어놓자. 이때 최초에 집에서 나갈 준비를 하세요 라는 걸 띄워줌.*/
-        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 100){
+        if(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter") < 50){
             userState = "HOME";
             notification = nBuilder.setContentTitle(habitName + "을 할 준비가 되셨나요?").build();
+            Toast.makeText(this.context,Double.toString(calc.distance(start_lat, start_lon, curr_lat, curr_lon, "meter")) + "미터~" , Toast.LENGTH_SHORT).show();
             manager.notify(3, notification);
             /* 학교일때 처리 이때 '잘 했냐?' 팝업창을 띄워줌 */
-        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 100){
+        } else if(calc.distance(dest_lat, dest_lon, curr_lat, curr_lon, "meter") < 50){
             userState = "SCHOOL";
             //팝업 오늘 잘 했나요? 예 - > SRBAI 할래요? 예 - > 액티비티 켜줌
             notification = nBuilder.setContentTitle("학교에 있다.").build();

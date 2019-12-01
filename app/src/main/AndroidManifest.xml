@@ -54,6 +54,10 @@
         <activity
             android:name=".Activities.StartActivity"
             android:parentActivityName=".Activities.MainActivity" />
+        <activity
+            android:name=".Service.PopUpScreen"
+            android:theme="@android:style/Theme.Dialog"
+            ></activity>
 
         <service
             android:name=".Service.HamaService"

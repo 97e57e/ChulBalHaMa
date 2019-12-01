@@ -177,6 +177,11 @@ public class HamaService extends Service implements GoogleApiClient.OnConnection
 
         public void handleMessage(android.os.Message msg) {
             if(locationHelper.getUserState() == "ROAD" && isActivityStart == false){
+
+                Intent intent = new Intent(getApplicationContext(), PopUpScreen.class);
+                intent.putExtra("data", "습관을 수행하세요");
+                getApplication().startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+
                 requestActivityUpdates();
                 isActivityStart = true;
                 Log.d("HAMA SERVICE", "액티비티 레코그니션 생성");
